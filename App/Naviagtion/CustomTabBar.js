@@ -85,10 +85,10 @@ export default CustomTabBar;
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
-    position:"absolute",
-    bottom:0,
-    justifyContent:"space-between",
-    width:"100%",
+    position: "absolute",
+    bottom: 0,
+    justifyContent: "space-between",
+    width: "100%",
   },
   tabBar: {
     flexDirection: 'row',
@@ -98,9 +98,9 @@ const styles = StyleSheet.create({
     height: 65,
     paddingHorizontal: 20,
     paddingTop: 10,
-    borderTopWidth:1,
-    borderLeftWidth:1,
-    borderRightWidth:1,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
     borderColor: Colors.GREY,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
@@ -119,6 +119,6 @@ const styles = StyleSheet.create({
   icon: {
     width: 26,
     height: 26,
-    top:-5
+    top: -5
   },
 });

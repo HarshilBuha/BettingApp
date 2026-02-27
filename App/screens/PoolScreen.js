@@ -25,7 +25,7 @@ import { useGetProfile } from '../api/ProfileApis';
 export default function PoolScreen({ navigation }) {
   const route = useRoute();
   const { data: userData } = useGetProfile();
-  const currentUserId = userData?._id;
+  const currentUserId = userData?.user?._id;
 
   const initialStatus = route.params?.status || { id: 1, name: 'All Pools' };
   const initialRole = route.params?.role || { id: 1, name: 'All Roles' };
@@ -80,7 +80,7 @@ export default function PoolScreen({ navigation }) {
       }
 
       if (role.name === 'Player') {
-        const currentUserName = userData?.name;
+        const currentUserName = userData?.user?.name;
 
         const isCreator =
           pool.createdBy?.name === currentUserName;
@@ -180,6 +180,12 @@ export default function PoolScreen({ navigation }) {
         renderItem={({ item }) => (
           <PoolCard pool={item} onViewPool={handleViewPool} />
         )}
+        ListEmptyComponent={<View style={styles.container}>
+          <Text style={styles.title}>No Pools to Show</Text>
+          <Text style={styles.subtitle}>
+            There are currently no pools available.
+          </Text>
+        </View>}
         ListHeaderComponent={
           <>
             {showFilter && (

@@ -36,4 +36,5 @@ export const UpdateProfile_Api = API_BASE_URL + "/auth/updateprofile"
 
 export const Prediction_Api = API_BASE_URL + "/pool"
 
+export const FCM_Api = API_BASE_URL + "/auth/fcm-token"
 

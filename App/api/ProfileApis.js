@@ -64,7 +64,7 @@ const getProfileApi = async () => {
     if (!response.ok) {
         throw new Error(result.message || 'Failed to get profile data');
     }
-    return result.user;
+    return result;
 };
 
 

@@ -29,7 +29,10 @@ export default function Header({
         {showBackButton ? (
           <TouchableOpacity
             style={styles.backRow}
-            onPress={() => navigation.navigate("Home")}
+            onPress={() => navigation.reset({
+              index: 0,
+              routes: [{ name: 'Home' }],
+            })}
             activeOpacity={0.7}
           >
             <Image
@@ -72,10 +75,10 @@ export default function Header({
               })
             }
           >
-            {userData?.profile ? (
+            {userData?.user?.profile ? (
               <View style={{borderWidth:1,padding:2,borderRadius:100}}>
               <Image
-                source={{ uri: userData.profile }}
+                source={{ uri: userData.user.profile }}
                 style={[styles.avatar]}
                 resizeMode="cover"
               />

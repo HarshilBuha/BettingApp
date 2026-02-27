@@ -56,7 +56,7 @@ export default function PoolDetailScreen({ navigation, route }) {
   const [correctAnswer, setCorrectAnswer] = useState(pool.result?.correctPrediction || null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingCorrectOption, setPendingCorrectOption] = useState(null);
-  const [selectedAnswer, setSelectedAnswer] = useState(pool?.yourPrediction || null);
+  const [selectedAnswer, setSelectedAnswer] = useState(pool?.yourPrediction || "NA");
   const [answerRanks, setAnswerRanks] = useState({});
   const [activeRankPicker, setActiveRankPicker] = useState(null);
   const options = Array.isArray(pool?.options) ? pool.options : [];
@@ -315,6 +315,7 @@ export default function PoolDetailScreen({ navigation, route }) {
                     ]}
                   >
                     {/* RADIO BUTTON */}
+                    // Inside options.map for the prediction section
                     <TouchableOpacity
                       style={[
                         styles.answerRadio,
@@ -324,11 +325,10 @@ export default function PoolDetailScreen({ navigation, route }) {
                         setSelectedAnswer(option);
                         setActiveRankPicker(null);
                       }}
-                      disabled={!!correctAnswer}
+                      // REMOVE or CHANGE this line if it was restricting users
+                      disabled={!!pool.result} // Only disable if the pool is already finished
                     >
-                      {selectedAnswer === option && (
-                        <View style={styles.answerRadioDot} />
-                      )}
+                      {selectedAnswer === option && <View style={styles.answerRadioDot} />}
                     </TouchableOpacity>
 
                     {/* OPTION TEXT */}
@@ -342,39 +342,37 @@ export default function PoolDetailScreen({ navigation, route }) {
                     )}
 
                     {/* ===== POINTS AWARDS (Mark Correct) ===== */}
-                    {pool.createdBy?.id === userData?._id &&
-                      pool.rewardSystem === "Points Awards" && (
-                        <TouchableOpacity
-                          style={[
-                            styles.setRankButton,
-                            correctAnswer && { opacity: 0.5 },
-                          ]}
-                          disabled={!!correctAnswer}
-                          onPress={() => {
-                            setPendingCorrectOption(option);
-                            setShowConfirmModal(true);
-                          }}
-                        >
-                          <Image
-                            source={
-                              correctAnswer === option
-                                ? Images.Competition
-                                : Images.Rank
-                            }
-                            style={styles.rankIcon}
-                            resizeMode="contain"
-                          />
-                          <Text style={styles.setRankText}>
-                            {correctAnswer === option
-                              ? "Correct Answer"
-                              : "Mark Correct"}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
+                    {pool.rewardSystem === "Points Awards" && (
+                      <TouchableOpacity
+                        style={[
+                          styles.setRankButton,
+                          correctAnswer && { opacity: 0.5 },
+                        ]}
+                        disabled={!!correctAnswer}
+                        onPress={() => {
+                          setPendingCorrectOption(option);
+                          setShowConfirmModal(true);
+                        }}
+                      >
+                        <Image
+                          source={
+                            correctAnswer === option
+                              ? Images.Competition
+                              : Images.Rank
+                          }
+                          style={styles.rankIcon}
+                          resizeMode="contain"
+                        />
+                        <Text style={styles.setRankText}>
+                          {correctAnswer === option
+                            ? "Correct Answer"
+                            : "Mark Correct"}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
 
                     {/* ===== PODIUM (Set Rank + Dropdown) ===== */}
-                    {pool.createdBy?.id === userData?._id &&
-                      pool.rewardSystem === "Podium" &&
+                    {pool.rewardSystem === "Podium" &&
                       pool.poolStatus !== "completed" && (
                         <>
                           <TouchableOpacity
@@ -439,50 +437,48 @@ export default function PoolDetailScreen({ navigation, route }) {
                     </Text>
                   </View>
 
-                  {pool.createdBy?.id == userData?._id && (
-                    <TouchableOpacity
-                      style={styles.logoutButtonContainer}
-                      disabled={
-                        !!pool.result ||
-                        (pool.rewardSystem === "Points Awards" && !correctAnswer) ||
-                        (pool.rewardSystem === "Podium" && !isPodiumReady)
+                  <TouchableOpacity
+                    style={styles.logoutButtonContainer}
+                    disabled={
+                      !!pool.result ||
+                      (pool.rewardSystem === "Points Awards" && !correctAnswer) ||
+                      (pool.rewardSystem === "Podium" && !isPodiumReady)
+                    }
+                    onPress={() => {
+                      if (pool.rewardSystem === "Points Awards" && !correctAnswer) {
+                        Alert.alert("Please mark a correct answer first");
+                        return;
                       }
-                      onPress={() => {
-                        if (pool.rewardSystem === "Points Awards" && !correctAnswer) {
-                          Alert.alert("Please mark a correct answer first");
-                          return;
-                        }
 
-                        if (pool.rewardSystem === "Podium" && !isPodiumReady) {
-                          Alert.alert("Please assign Rank 1, Rank 2, and Rank 3");
-                          return;
-                        }
+                      if (pool.rewardSystem === "Podium" && !isPodiumReady) {
+                        Alert.alert("Please assign Rank 1, Rank 2, and Rank 3");
+                        return;
+                      }
 
-                        // optional: prevent reopen if already declared
-                        if (pool.result) {
-                          Alert.alert("Result already declared");
-                          return;
-                        }
-                        setShowConfirmModal(true);
-                      }}
-                    >
-                      {pool.rewardSystem === "Podium" && (
-                        <LinearGradient
-                          colors={Colors.GRADIENT}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={[
-                            styles.logoutButton,
-                            (pool.result || correctAnswer) && { opacity: 0.5 },
-                          ]}
-                        >
-                          <Text style={styles.suggestButtonText}>
-                            Declare Result
-                          </Text>
-                        </LinearGradient>
-                      )}
-                    </TouchableOpacity>
-                  )}
+                      // optional: prevent reopen if already declared
+                      if (pool.result) {
+                        Alert.alert("Result already declared");
+                        return;
+                      }
+                      setShowConfirmModal(true);
+                    }}
+                  >
+                    {pool.rewardSystem === "Podium" && (
+                      <LinearGradient
+                        colors={Colors.GRADIENT}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={[
+                          styles.logoutButton,
+                          (pool.result || correctAnswer) && { opacity: 0.5 },
+                        ]}
+                      >
+                        <Text style={styles.suggestButtonText}>
+                          Declare Result
+                        </Text>
+                      </LinearGradient>
+                    )}
+                  </TouchableOpacity>
 
                   <Text style={[styles.pointsRequired, { fontFamily: 'Inter-SemiBold' }]}>
                     Your Bet: {selectedAnswer || 'None'}
@@ -506,7 +502,7 @@ export default function PoolDetailScreen({ navigation, route }) {
                       </LinearGradient>
                     </TouchableOpacity>
                   }
-                  {pool.createdBy?.id == userData?._id && pool.poolStatus == "active" && (<>
+                  {pool.poolStatus == "active" && (<>
                     <Text style={{ fontSize: 16, fontFamily: "Inter-SemiBold", textAlign: "center" }}>OR</Text>
                     <TouchableOpacity
                       style={[styles.logoutButtonContainer, { marginBottom: 10 }]}
@@ -535,7 +531,7 @@ export default function PoolDetailScreen({ navigation, route }) {
               <Image source={Images.Lock} style={styles.icon} resizeMode='contain' />
               <Text style={styles.rewardLabel}>Pool is now closed. No more Predictions can be submitted or modified</Text>
             </View>
-            <View style={[styles.section, pool.createdBy?.id == userData?._id && pool.poolStatus === "completed" ? { marginBottom: 40 } : { marginBottom: 100 }]}>
+            <View style={[styles.section, pool.createdBy?.id == userData?.user?._id && pool.poolStatus === "completed" ? { marginBottom: 40 } : { marginBottom: 100 }]}>
               <View style={styles.sectionHeader}>
                 <Image source={Images.Trophy} style={styles.icon} resizeMode="contain" />
                 <Text style={styles.sectionTitle}>Results & Winners</Text>
@@ -557,7 +553,7 @@ export default function PoolDetailScreen({ navigation, route }) {
                 </View>
               }
             </View>
-            {pool.createdBy?.id == userData?._id && pool.poolStatus === "completed" && (
+            {pool.createdBy?.id == userData?.user?._id && pool.poolStatus === "completed" && (
               <View style={[styles.reopenSection, { marginBottom: 100 }]}>
                 <Text style={styles.sectionTitle}>Pool Management</Text>
                 <Text style={styles.reopenDescription}>This pool is currently closed .You can reopen it to allow new predictions and reset al current rankings</Text>

@@ -82,55 +82,58 @@ export default function PoolCard({ pool, item, onViewPool, mode = 'normal' }) {
         </View>
 
         {/* Title */}
-        <Text style={styles.poolTitle}>{pool.title}</Text>
-
-        {/* Description */}
-        <Text style={styles.poolDescription}>{pool.description}</Text>
-
-        {/* Players Count */}
-        <View style={styles.playersSection}>
-          <Image source={Images.Personss} resizeMode='contain' style={{ height: 25, width: 25 }} />
-          <Text style={styles.playersText}>{pool.players} Players</Text>
-        </View>
-
-        {/* Player Names */}
 
 
-        <View style={styles.playerNamesSection}>
-          <Image source={Images.Person} style={{ height: 18, width: 18 }} />
-          <Text style={styles.playerNamesText}>
-            {mode === 'invited'
-              ? pool.participants?.join(', ')
-              : pool.participants
-                ?.map(p => p.playerName)
-                .filter(Boolean)
-                .join(', ')}
-          </Text>
-        </View>
+        {/* ===== Middle Two Column Section ===== */}
+        <View style={styles.middleRow}>
 
-        {/* Betting Details Box */}
-        <View style={styles.bettingBox}>
-          <Image source={Images.Prize} resizeMode='contain' style={{ height: 20, width: 20 }} />
-          <View>
-            <Text style={styles.bettingLabel}>{pool.betAmount} pts to bet</Text>
-            <Text style={styles.bettingLabel}>{pool.totalPot} pts total pot</Text>
-            <Text style={styles.bettingLabel}>{pool.maxWin} pts max win</Text>
-            <Text style={styles.pointsScoredLabel}>Points Scored: {pool.pointsScored} pts</Text>
+          {/* LEFT SIDE */}
+          <View style={styles.leftColumn}>
+            <Text style={styles.poolTitle}>{pool.title}</Text>
+
+            {/* Description */}
+            <Text style={styles.poolDescription}>{pool.question}</Text>
+            <View style={styles.infoRow}>
+              <Image source={Images.Prize} style={styles.smallIcon} />
+
+              <View>
+                <Text style={styles.infoText}>{pool.betAmount} pts to bet</Text>
+                <Text style={styles.infoText}>{pool.totalPot} pts total pot</Text>
+                <Text style={styles.infoText}>{pool.maxWin} pts max win</Text>
+              </View>
+            </View>
           </View>
+
+          {/* RIGHT SIDE */}
+          <View style={styles.rightColumn}>
+            <View style={styles.infoRow}>
+              <Image source={Images.Person} style={styles.smallIcon} />
+              <Text style={styles.highlightText}>By {pool.createdBy?.name}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Image source={Images.Personss} style={styles.smallIcon} />
+              <Text style={styles.poolDescription}>{pool.players} Players</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Image source={Images.Person} style={styles.smallIcon} />
+              <Text style={styles.poolDescription} numberOfLines={1}>
+                {pool.participants?.length > 0
+                  ? typeof pool.participants[0] === 'string'
+                    ? pool.participants.join(', ')
+                    : pool.participants.map(p => p.playerName).join(', ')
+                  : 'No participants'}
+              </Text>
+            </View>
+          </View>
+
         </View>
 
-
-        {/* Scored By */}
-        {/* <View style={styles.scoredBySection}>
-          <Icon name="time" size={14} color={Colors.TEXT} />
-          <Text style={styles.scoredByText}>{pool.scoredBy}</Text>
-        </View> */}
-
-        {/* Created By */}
-        <View style={styles.createdBySection}>
-          <Image source={Images.Person} resizeMode='contain' style={{ height: 20, width: 20 }} />
-          <Text style={styles.createdByText}>{pool.createdBy?.name}</Text>
-        </View>
+        {/* ===== Points Scored ===== */}
+        <Text style={styles.pointsCenter}>
+          Points Scored: {pool.result?.userPointsEarned || 0} pts
+        </Text>
         {/* Copy Link Button */}
         {mode === 'invited' ? (
           <View style={styles.inviteActionRow}>
@@ -233,7 +236,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: Colors.TEXT,
-    marginBottom: 4,
   },
 
   // ✅ DESCRIPTION
@@ -241,7 +243,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: Colors.SUBTEXT,
-    marginBottom: 12,
   },
 
   // ✅ PLAYERS COUNT
@@ -310,6 +311,53 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: Colors.SUBTEXT,
   },
+  middleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  leftColumn: {
+    flex: 1,
+    gap: 5,
+  },
+
+  rightColumn: {
+    flex: 1,
+    gap: 6,
+    paddingLeft: 10,
+  },
+
+  infoRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+
+  smallIcon: {
+    width: 16,
+    height: 16,
+    resizeMode: 'contain',
+
+  },
+
+  infoText: {
+    fontSize: 13,
+    fontFamily: 'Inter-SemiBold',
+    color: Colors.TEXT,
+  },
+
+  highlightText: {
+    fontSize: 13,
+    fontFamily: 'Inter-SemiBold',
+    color: Colors.CYAN,
+  },
+
+  pointsCenter: {
+    textAlign: 'center',
+    fontSize: 15,
+    fontFamily: 'Inter-SemiBold',
+    color: Colors.TEXT,
+    marginVertical: 12,
+  },
 
   // ✅ CREATED BY
   createdBySection: {
@@ -332,8 +380,8 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: Colors.TEXT,
     paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingHorizontal: 1,
+    borderRadius: 9,
   },
   copyLinkText: {
     fontSize: 10,

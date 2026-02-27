@@ -26,9 +26,18 @@ export default function HomeScreen() {
 
   const { data: userData = {}, isLoading: isProfileLoading } = useGetProfile();
   const { data: pools = [], isLoading: isPoolsLoading } = useGetPools();
-  const { data: invitedPools = [], isLoading: isInvitesLoading } =
-    useGetInvitedPools();
+  const {
+    data: invitedPools = [],
+    isLoading: isInvitesLoading,
+    refetch: refetchInvitedPools,
+  } = useGetInvitedPools();
+  const [refreshing, setRefreshing] = React.useState(false);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refetchInvitedPools();
+    setRefreshing(false);
+  };
   const loading = isProfileLoading || isPoolsLoading || isInvitesLoading;
 
   const handleCreatePool = () => {
@@ -39,17 +48,31 @@ export default function HomeScreen() {
     navigation.navigate('PoolStack', { screen: 'PoolMain' });
   };
 
+  const currentUserName = userData?.user?.name;
+
+  const joinedPoolsCount = pools.filter(pool => {
+    const isCreator =
+      pool.createdBy?.name === currentUserName;
+
+    const isParticipant = pool.participants?.some(
+      p => p.playerName === currentUserName
+    );
+
+    return isParticipant && !isCreator;
+  }).length;
+
   const poolStats = [
     {
       id: '1',
       label: 'Pool Points',
-      value: userData?.totalPoints ?? 0,
+      value: userData?.user?.totalPoints ?? 0,
       icon: Images.Trophy,
+      navigate: 'Summary',
     },
     {
       id: '2',
       label: 'Pools Joined',
-      value: pools.length,
+      value: joinedPoolsCount,
       icon: Images.Persons,
       navigate: 'PoolMain',
       initialFilters: { role: { id: 3, name: 'Player' } },
@@ -69,10 +92,15 @@ export default function HomeScreen() {
       initialFilters: { role: { id: 2, name: 'Creator' } },
     },
   ];
-
   const renderStatCard = ({ item }) => {
     const handlePress = () => {
       if (!item.navigate) return;
+      if (item.navigate === 'Summary') {
+        navigation.navigate('Summary', {
+          results: userData?.results || [],
+        });
+        return;
+      }
       navigation.navigate('PoolStack', {
         screen: item.navigate,
         params: item.initialFilters || {},
@@ -107,6 +135,8 @@ export default function HomeScreen() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
+        refreshing={refreshing}
+onRefresh={handleRefresh}
         renderItem={({ item }) => (
           <View style={{ marginHorizontal: 16, marginBottom: 12 }}>
             <PoolCard item={item} pool={item.pool} mode="invited" />

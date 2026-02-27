@@ -4,7 +4,7 @@ import TabNavigator from './TabNavigator';
 import NotificationScreen from "../screens/NotificationScreen"
 import ResultScreen from "../screens/ResultScreen"
 import StatisticScreen from "../screens/StatisticScreen"
-
+import SummaryScreen from "../screens/SummaryScreen"
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
@@ -14,6 +14,7 @@ export default function RootNavigator() {
       <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="Results" component={ResultScreen} />
       <Stack.Screen name="Statistics" component={StatisticScreen} />
+      <Stack.Screen name="Summary" component={SummaryScreen} />
     </Stack.Navigator>
   );
 }

@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  BackHandler
 } from 'react-native';
 import { Colors } from '../../assets/fonts/fonts';
 import { useCreatePool } from '../api/PoolApis';
@@ -17,6 +18,7 @@ import StepFive from '../components/Steps/StepFive';
 import PoolCreatedSuccess from '../components/Steps/PoolCreatedSuccess';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function CreatePoolScreen({ navigation }) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -39,16 +41,6 @@ export default function CreatePoolScreen({ navigation }) {
   });
 
   console.log(poolData);
-
-
-  const handleBackPress = () => {
-    if (showSuccess) {
-      setShowSuccess(false);
-      setCurrentStep(5);
-    } else {
-      navigation.goBack();
-    }
-  };
 
   const handleSubmit = async () => {
     try {
@@ -114,6 +106,26 @@ export default function CreatePoolScreen({ navigation }) {
     return Math.round((currentStep / 5) * 100);
   };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        });
+
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [navigation])
+  );
+
   const renderStep = () => {
     switch (currentStep) {
       case 1:
@@ -171,7 +183,6 @@ export default function CreatePoolScreen({ navigation }) {
       {/* Header - Always Shown */}
       <Header
         showBackButton={true}
-        onBackPress={handleBackPress}
       />
 
       {/* Title and Progress - Only when not showing success */}

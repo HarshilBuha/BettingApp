@@ -25,7 +25,7 @@ import { useGetPoolResults, useGetPoolStatistics, useGetProfile } from '../api/P
 import Loader from '../components/Loader';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { launchImageLibrary } from 'react-native-image-picker';
-
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ProfileScreen({ }) {
   const [showFilter, setShowFilter] = useState(false);
@@ -35,6 +35,7 @@ export default function ProfileScreen({ }) {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleDropdownToggle = (dropdownName) => {
     const newState = openDropdown === dropdownName ? null : dropdownName;
@@ -117,10 +118,6 @@ export default function ProfileScreen({ }) {
       return;
     }
 
-    console.log("IMAGE URI =>", img.uri);
-    console.log("IMAGE NAME =>", img.fileName || "photo.jpg");
-    console.log("IMAGE TYPE =>", img.type || "image/jpeg");
-
     try {
       setUploading(true);
 
@@ -140,9 +137,6 @@ export default function ProfileScreen({ }) {
         type: img.type || "image/jpeg",
       });
 
-      console.log("Uploading to: https://porralia.onrender.com/api/auth/updateprofile");
-      console.log("Token:", token.substring(0, 20) + "...");
-
       const response = await fetch(
         "https://porralia.com/api/auth/updateprofile",
         {
@@ -153,9 +147,6 @@ export default function ProfileScreen({ }) {
           body: formData,
         }
       );
-
-      console.log("Response Status:", response.status);
-      console.log("Response OK:", response.ok);
 
       // ✅ FIX: Better error handling
       if (!response.ok) {
@@ -179,11 +170,12 @@ export default function ProfileScreen({ }) {
 
       // ✅ Success response handling
       const responseData = await response.json();
-      console.log("Upload Success:", responseData);
 
       Alert.alert("Success", "Profile image updated successfully!");
 
-      // ✅ Optional: Refetch profile data
+      // ✅ Refetch profile automatically
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+
       // await refetchProfile();
 
     } catch (error) {
@@ -263,12 +255,12 @@ export default function ProfileScreen({ }) {
         {/* Profile */}
         <View style={styles.profileContainer}>
           <Pressable onPress={pickImage} disabled={uploading}>
-            {image?.uri || userData?.profile ? (
+            {image?.uri || userData?.user?.profile ? (
               <Image
                 source={
                   image?.uri
                     ? { uri: image.uri }
-                    : { uri: userData.profile }
+                    : { uri: userData.user.profile }
                 }
                 style={styles.avatar}
               />
@@ -284,20 +276,39 @@ export default function ProfileScreen({ }) {
               <Icon name="add" size={25} color={Colors.WHITE} />
             </View>
           </Pressable>
-          <Text style={styles.name}>{userData?.name}</Text>
-          <Text style={styles.joined}>Joined on {formatDate(userData?.createdAt)}</Text>
+          <Text style={styles.name}>{userData?.user?.name}</Text>
+          <Text style={styles.joined}>Joined on {formatDate(userData?.user?.createdAt)}</Text>
         </View>
 
         {/* Total Winnings */}
+        {/* Total Winnings */}
         <View style={styles.winningWrapper}>
-          <View style={styles.winningCard}>
-            <Image source={Images.Trophy} style={{ height: 25, width: 25, tintColor: Colors.WHITE }} resizeMode='contain' />
-            <Text style={styles.winningText}>
-              Total Winnings: {userData?.totalPoints}
-            </Text>
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <View style={styles.statIconCircle}>
+                <Icon name="trophy" size={20} color="#FFD700" />
+              </View>
+              <Text style={styles.statLabel}>Total Winnings</Text>
+              <Text style={styles.statValue}>{userData.bettingBag?.totalWinnings ?? '0'}</Text>
+            </View>
+
+            <View style={styles.statDivider} />
+
+            <View style={styles.statCard}>
+              <View style={styles.statIconCircle}>
+                <Icon name="wallet" size={20} color="#01C2A8" />
+              </View>
+              <Text style={styles.statLabel}>Bankroll</Text>
+              <Text
+                style={[styles.statValue, { width: '100%', flexShrink: 1 }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.6}
+              >
+                ₹ {userData?.bettingBag?.bankroll ?? '0'}
+              </Text> </View>
           </View>
         </View>
-
         <TouchableOpacity
           style={styles.filterIcon}
           onPress={() => setShowFilter(!showFilter)}
@@ -473,7 +484,6 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     paddingHorizontal: 16
   },
-
   profileContainer: {
     alignItems: 'center',
     marginTop: 16,
@@ -497,25 +507,10 @@ const styles = StyleSheet.create({
     color: Colors.SUBTEXT,
     marginTop: 2,
   },
-
   winningWrapper: {
     marginHorizontal: 16,
     marginTop: 16,
     alignItems: "center"
-  },
-  winningCard: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  winningText: {
-    color: Colors.WHITE,
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
   },
   filterIcon: {
     alignItems: "flex-end",
@@ -524,6 +519,54 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginRight: 20,
     marginTop: 10
+  },
+  statsRow: {
+    flexDirection: 'row',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  statCard: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+  },
+  statIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#2C2C2C',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter-Medium',
+    color: '#9E9E9E',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statValue: {
+    fontSize: 22,
+    fontFamily: 'Inter-SemiBold',
+    color: Colors.WHITE,
+    textAlign: 'center',
+  },
+  statDivider: {
+    width: 1,
+    height: 60,
+    backgroundColor: '#3A3A3A',
+    marginHorizontal: 16,
   },
 
   filterPanel: {

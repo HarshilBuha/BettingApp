@@ -16,38 +16,45 @@ import ModalComponent from '../components/ModalComponent';
 import { useDeleteAccount } from '../api/AuthApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthContext from '../contexts/AuthContext';
+import Loader from '../components/Loader';
+import { queryClient } from '../queryClient';
 
 export default function SettingScreen({ }) {
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(null); // 'logout' | 'delete'
   const deleteAccountMutation = useDeleteAccount()
+  const isLoading = deleteAccountMutation.isPending;
   const { signOut } = useContext(AuthContext);
   const handleLogout = async () => {
-    setShowModal(false);
-    const token = await AsyncStorage.getItem('userToken');
-    await signOut(token)
+    try {
+      setShowModal(false);
+
+      await AsyncStorage.clear();   // clear storage
+      queryClient.clear();          // clear all react-query cache
+      await signOut();              // reset auth state
+
+    } catch (error) {
+      console.log('Logout error:', error);
+    }
   };
 
   const handleDelete = async () => {
-    setShowModal(false);
-
     deleteAccountMutation.mutate(
       {},
       {
-        onSuccess: async (data) => {
-          console.log('Delete Account SUCCESS', data);
+        onSuccess: async () => {
+          setShowModal(false);
 
-          const token = await AsyncStorage.getItem('userToken');
-          await signOut(token);
+          await AsyncStorage.clear();
+          queryClient.clear();
+          await signOut();
         },
         onError: (error) => {
           Alert.alert(
             'Delete Account Failed',
             error.message || 'Something went wrong'
           );
-          console.log(error.message);
-          
         },
       }
     );
@@ -57,7 +64,7 @@ export default function SettingScreen({ }) {
   return (
     <SafeAreaView style={styles.container}>
       <Header showBackButton hideRight={true} />
-
+      <Loader visible={isLoading} />
       <Text style={styles.title}>Setting</Text>
 
       <View style={styles.cardContainer}>
