@@ -31,7 +31,6 @@ export default function OTPVerificationScreen({ route }) {
     const verifyOtp = useForgotPasswordOTPVerify();
     const loading = resendOtp.isPending || verifyOtp.isPending
 
-    // ✅ THIS IS THE IMPORTANT PART
     const handleChange = (code) => {
         const cleaned = code.replace(/\D/g, '');
 
@@ -65,7 +64,7 @@ export default function OTPVerificationScreen({ route }) {
 
     const handleSendCode = () => {
         setTimer(30);
-        otpRef.current?.reset(); // ✅ reset OTP input
+        otpRef.current?.reset(); 
         setOtp('');
 
         resendOtp.mutate(

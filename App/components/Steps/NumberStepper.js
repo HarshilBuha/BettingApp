@@ -69,13 +69,13 @@ const styles = StyleSheet.create({
   },
 
   input: {
-    width: 40,                 // ✅ FIX: visible width
-    height: 42,                // ✅ FIX: visible height
+    width: 40,                
+    height: 42,                
     fontSize: 16,
     fontFamily: 'Poppins-Bold',
     color: Colors.TEXT,
     textAlign: 'center',
-    includeFontPadding: false, // ✅ FIX: Android text bug
+    includeFontPadding: false, 
   },
 
   controls: {

@@ -6,23 +6,31 @@ import {
     ScrollView,
     StatusBar,
     Image,
+    TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../assets/fonts/fonts';
 import Header from '../components/Header';
 import Loader from '../components/Loader';
 import { Images } from '../../assets/Images';
+import { useNavigation } from '@react-navigation/native';
+import { useGetPools } from '../api/PoolApis';
 
 export default function ResultScreen({ route }) {
     const { results } = route.params || {};
-    console.log(results);
+    const navigation = useNavigation();
+    const { data: pools = [] } = useGetPools();
 
+    const handlePress = (resultId) => {
+        const pool = pools.find(p => p.id === resultId);
+        if (!pool) return;
+
+        navigation.navigate('PoolDetail', { pool });
+    };
     return (
         <SafeAreaView style={styles.container} >
             <StatusBar translucent backgroundColor="transparent" />
-            {/* <Loader visible={isLoading} /> */}
 
-            {/* BACKGROUND */}
             <View style={styles.background}>
                 <View style={styles.ellipseBig} />
                 <View style={styles.ellipseSmall} />
@@ -30,7 +38,7 @@ export default function ResultScreen({ route }) {
 
             {/* CONTENT */}
             <View style={styles.content}>
-                <Header label='Pool Results' showBackButton={true} showNotificationIcon={false} />
+                <Header type='out' label='Pool Results' showBackButton={true} showNotificationIcon={false} />
 
                 {/* CARD */}
 
@@ -42,7 +50,7 @@ export default function ResultScreen({ route }) {
                         <View style={styles.sectionHeader}>
                             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                                 <Image source={Images.Trophy} style={{ height: 20, width: 20 }} />
-                                <Text style={styles.sectionTitle}>Pool Results</Text>
+                                <Text onPress={()=>navigation.navigate("Extra")} style={styles.sectionTitle}>Pool Results</Text>
                             </View>
                         </View>
 
@@ -53,8 +61,10 @@ export default function ResultScreen({ route }) {
                         )}
 
                         {results.map(result => (
-                            <View
+                            <TouchableOpacity
                                 key={result.id}
+                                activeOpacity={0.7}
+                                onPress={() => handlePress(result.id)}
                                 style={[
                                     styles.resultCard,
                                     result.resultInfo?.userResult === 'won' ? styles.win : styles.loss,
@@ -78,7 +88,7 @@ export default function ResultScreen({ route }) {
                                             : `Lost Points : ${result.resultInfo?.pointsLost}`}
                                     </Text>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         ))}
                     </View>
                 </ScrollView>
@@ -125,7 +135,7 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     scrollContent: {
-        paddingBottom: 20, // safe space for last card
+        paddingBottom: 20,
     },
     section: {
         marginVertical: 20,

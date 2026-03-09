@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Image, StyleSheet, StatusBar } from 'react-native';
 import { Images } from '../../../assets/Images';
 import { Colors } from '../../../assets//fonts/fonts'
 import GradientButton from '../../components/GradientButton'
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQueryClient } from '@tanstack/react-query';
+import messaging from '@react-native-firebase/messaging';
 export default function OnBoardingScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor={Colors.WHITE}/>
+      <StatusBar backgroundColor={Colors.WHITE} />
       <View style={styles.logoContainer}>
         <Image source={Images.Logo} style={styles.logoIcon} />
         <Text style={styles.logoText}>Porralia</Text>

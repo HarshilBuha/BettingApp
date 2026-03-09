@@ -6,6 +6,7 @@ import {
     ScrollView,
     StatusBar,
     Image,
+    TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../assets/fonts/fonts';
@@ -13,6 +14,8 @@ import Header from '../components/Header';
 import Loader from '../components/Loader';
 import { Images } from '../../assets/Images';
 import { useGetPoolResults, useGetProfile } from '../api/ProfileApis';
+import { useGetPools } from '../api/PoolApis';
+import { useNavigation } from '@react-navigation/native';
 
 export default function SummaryScreen({ route }) {
     const { data: poolResults = [], isLoading: isResultsLoading } = useGetPoolResults()
@@ -26,6 +29,15 @@ export default function SummaryScreen({ route }) {
             year: '2-digit',
         });
     };
+    const navigation = useNavigation();
+    const { data: pools = [] } = useGetPools();
+
+    const handlePress = (resultId) => {
+        const pool = pools.find(p => p.id === resultId);
+        if (!pool) return;
+
+        navigation.navigate('PoolDetail', { pool });
+    };
     return (
         <SafeAreaView style={styles.container} >
             <StatusBar translucent backgroundColor="transparent" />
@@ -33,7 +45,7 @@ export default function SummaryScreen({ route }) {
 
             {/* CONTENT */}
             <View style={styles.content}>
-                <Header showBackButton={true} showNotificationIcon={false} />
+                <Header type='out' showBackButton={true} showNotificationIcon={false} />
 
                 {/* CARD */}
 
@@ -46,7 +58,7 @@ export default function SummaryScreen({ route }) {
                         <View style={styles.winningCard}>
                             <Image source={Images.Trophy} style={{ height: 25, width: 25, tintColor: Colors.WHITE }} resizeMode='contain' />
                             <Text style={styles.winningText}>
-                                Total Winnings: {userData?.user?.totalPoints}
+                                Total Winnings: {userData.bettingBag?.totalWinnings ?? '0'}
                             </Text>
                         </View>
                     </View>
@@ -66,8 +78,10 @@ export default function SummaryScreen({ route }) {
                         )}
 
                         {poolResults.map(result => (
-                            <View
+                            <TouchableOpacity
                                 key={result.id}
+                                activeOpacity={0.7}
+                                onPress={() => handlePress(result.id)}
                                 style={[
                                     styles.resultCard,
                                     result.resultInfo?.userResult === 'won' ? styles.win : styles.loss,
@@ -91,7 +105,7 @@ export default function SummaryScreen({ route }) {
                                             : `Lost Points : ${result.resultInfo?.pointsLost}`}
                                     </Text>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         ))}
                     </View>
                 </ScrollView>
@@ -138,7 +152,7 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     scrollContent: {
-        paddingBottom: 20, // safe space for last card
+        paddingBottom: 20,
     },
     winningWrapper: {
         marginHorizontal: 16,

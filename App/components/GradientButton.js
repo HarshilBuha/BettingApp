@@ -49,7 +49,6 @@ export default function GradientButton({
         );
     }
 
-    // Secondary variant with outline
     return (
         <TouchableOpacity
             onPress={onPress}
@@ -72,7 +71,6 @@ export default function GradientButton({
 
 
 const styles = StyleSheet.create({
-    // PRIMARY GRADIENT BUTTON
     buttonWrapper: {
         width: '100%',
         borderRadius: 10,
@@ -105,8 +103,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: 'Inter-SemiBold',
     },
-
-    // SECONDARY OUTLINE BUTTON
     secondaryButtonWrapper: {
         width: '100%',
         borderRadius: 10,

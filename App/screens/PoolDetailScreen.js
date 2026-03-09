@@ -152,7 +152,7 @@ export default function PoolDetailScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <Header title='Back to Pools' showBackButton={true} />
+      <Header type='out' title='Back to Pools' showBackButton={true} />
       <Loader visible={isLoading} />
       <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContainer}>
         <View style={styles.section}>
@@ -170,7 +170,7 @@ export default function PoolDetailScreen({ navigation, route }) {
             <Image source={Images.PrizePot} style={styles.icon} resizeMode='contain' />
             <View>
               <Text style={styles.pointsText}>Points to Award</Text>
-              <Text style={styles.noParticipants}>{pool.maxWin}</Text>
+              <Text style={styles.noParticipants}>{pool.totalPot}</Text>
             </View>
           </View>
           <View style={styles.innerContainer}>
@@ -265,7 +265,7 @@ export default function PoolDetailScreen({ navigation, route }) {
 
                       <View style={styles.leaderboardInfo}>
                         <Text style={styles.leaderboardName}>{item.playerName}</Text>
-                        <Text style={styles.leaderboardDate}>{item.playerJoinedDate}</Text>
+                        <Text style={styles.leaderboardDate}>{item.joinedAt}</Text>
                       </View>
                     </View>
                     <View style={styles.rewardBox}>
@@ -304,8 +304,6 @@ export default function PoolDetailScreen({ navigation, route }) {
                     style={[
                       styles.answerOption,
                       selectedAnswer === option && styles.answerOptionSelected,
-
-                      // ✅ Highlight correct answer (Points Awards only)
                       pool.rewardSystem === "Points Awards" &&
                       correctAnswer === option && {
                         borderColor: "#01C2A8",
@@ -315,7 +313,6 @@ export default function PoolDetailScreen({ navigation, route }) {
                     ]}
                   >
                     {/* RADIO BUTTON */}
-                    // Inside options.map for the prediction section
                     <TouchableOpacity
                       style={[
                         styles.answerRadio,
@@ -325,8 +322,7 @@ export default function PoolDetailScreen({ navigation, route }) {
                         setSelectedAnswer(option);
                         setActiveRankPicker(null);
                       }}
-                      // REMOVE or CHANGE this line if it was restricting users
-                      disabled={!!pool.result} // Only disable if the pool is already finished
+                      disabled={!!pool.result}
                     >
                       {selectedAnswer === option && <View style={styles.answerRadioDot} />}
                     </TouchableOpacity>
@@ -454,8 +450,6 @@ export default function PoolDetailScreen({ navigation, route }) {
                         Alert.alert("Please assign Rank 1, Rank 2, and Rank 3");
                         return;
                       }
-
-                      // optional: prevent reopen if already declared
                       if (pool.result) {
                         Alert.alert("Result already declared");
                         return;
@@ -571,7 +565,6 @@ export default function PoolDetailScreen({ navigation, route }) {
           setPendingCorrectOption(null);
         }}
         onConfirm={() => {
-          // 🎯 POINTS AWARDS
           if (pool.rewardSystem === "Points Awards") {
             if (!pendingCorrectOption) {
               Alert.alert("Please mark a correct answer first");
@@ -583,14 +576,11 @@ export default function PoolDetailScreen({ navigation, route }) {
             setPendingCorrectOption(null);
           }
 
-          // 🏆 PODIUM
           if (pool.rewardSystem === "Podium") {
             if (!isPodiumReady) {
               Alert.alert("Please assign Rank 1, Rank 2, and Rank 3");
               return;
             }
-
-            // 👉 send ranks instead of correct answer
             handleDeclareResult({
               rank1: answerRanks[1],
               rank2: answerRanks[2],
@@ -613,7 +603,7 @@ const styles = StyleSheet.create({
   },
 
   logoutButton: {
-    paddingVertical: 12,    // ✅ Controls width (adjust as needed)
+    paddingVertical: 12, 
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1069,8 +1059,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: Colors.GREY,
-    zIndex: 9999,            // 🔥 floats above everything
-    elevation: 20,           // Android
+    zIndex: 9999,           
+    elevation: 20,          
     paddingVertical: 6,
   },
   option: {
@@ -1144,7 +1134,7 @@ const styles = StyleSheet.create({
     marginBottom: 15
   },
   pill: {
-    alignSelf: "flex-start",        // ✅ pill width = text width
+    alignSelf: "flex-start",      
     backgroundColor: "#C80202",
     color: "#FFFFFF",
     paddingHorizontal: 10,

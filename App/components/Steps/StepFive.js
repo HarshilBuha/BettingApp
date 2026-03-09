@@ -55,7 +55,6 @@ export default function StepFive({ onDataChange, onSubmit, onPrevious, initialDa
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    // Duplicate check
     const isDuplicate = friends.some((f) =>
       f.email === value ||
       f.phone === value ||

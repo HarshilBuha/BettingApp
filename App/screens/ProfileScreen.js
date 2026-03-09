@@ -20,7 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import AuthContext from '../contexts/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Dropdown from '../components/Dropdown';
-import { useGetCategories, useGetUsers } from '../api/PoolApis';
+import { useGetCategories, useGetPools, useGetUsers } from '../api/PoolApis';
 import { useGetPoolResults, useGetPoolStatistics, useGetProfile } from '../api/ProfileApis'
 import Loader from '../components/Loader';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -36,7 +36,14 @@ export default function ProfileScreen({ }) {
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
+  const { data: pools = [] } = useGetPools();
 
+  const handlePress = (resultId) => {
+    const pool = pools.find(p => p.id === resultId);
+    if (!pool) return;
+
+    navigation.navigate('PoolDetail', { pool });
+  };
   const handleDropdownToggle = (dropdownName) => {
     const newState = openDropdown === dropdownName ? null : dropdownName;
     setOpenDropdown(newState);
@@ -81,7 +88,7 @@ export default function ProfileScreen({ }) {
     launchImageLibrary(
       {
         mediaType: "photo",
-        quality: 0.8, // ✅ Reduce quality to compress image
+        quality: 0.8, //  Reduce quality to compress image
       },
       async (response) => {
         if (response.didCancel) {
@@ -99,10 +106,8 @@ export default function ProfileScreen({ }) {
           return;
         }
 
-        // ✅ Set image in state
         setImage(selectedImage);
 
-        // ✅ Upload immediately after pick
         try {
           await uploadImage(selectedImage);
         } catch (error) {
@@ -127,10 +132,8 @@ export default function ProfileScreen({ }) {
         return;
       }
 
-      // ✅ FIX: Proper FormData construction
       const formData = new FormData();
 
-      // ✅ Append file with correct structure
       formData.append("profile", {
         uri: Platform.OS === 'ios' ? img.uri.replace('file://', '') : img.uri,
         name: img.fileName || "photo.jpg",
@@ -148,7 +151,6 @@ export default function ProfileScreen({ }) {
         }
       );
 
-      // ✅ FIX: Better error handling
       if (!response.ok) {
         const contentType = response.headers.get("content-type");
         let errorMessage = `HTTP ${response.status}`;
@@ -168,20 +170,16 @@ export default function ProfileScreen({ }) {
         throw new Error(errorMessage);
       }
 
-      // ✅ Success response handling
       const responseData = await response.json();
 
       Alert.alert("Success", "Profile image updated successfully!");
 
-      // ✅ Refetch profile automatically
+      // Refetch profile automatically
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-
-      // await refetchProfile();
 
     } catch (error) {
       console.error("Upload Error:", error.message);
 
-      // ✅ Better error messages
       let userMessage = error.message;
 
       if (error.message.includes("Network")) {
@@ -193,7 +191,7 @@ export default function ProfileScreen({ }) {
       }
 
       Alert.alert("Upload Failed", userMessage);
-      setImage(null); // ✅ Clear failed image
+      setImage(null); 
 
     } finally {
       setUploading(false);
@@ -254,33 +252,55 @@ export default function ProfileScreen({ }) {
 
         {/* Profile */}
         <View style={styles.profileContainer}>
-          <Pressable onPress={pickImage} disabled={uploading}>
-            {image?.uri || userData?.user?.profile ? (
-              <Image
-                source={
-                  image?.uri
-                    ? { uri: image.uri }
-                    : { uri: userData.user.profile }
-                }
-                style={styles.avatar}
-              />
-            ) : (
-              <Icon
-                name="person-circle"
-                size={72}
-                color={Colors.TEXT}
-              />
-            )}
+          {/* LEFT: Avatar with Badge */}
+          <View style={styles.leftProfile}>
+            <Pressable onPress={pickImage} disabled={uploading} style={styles.avatarWrapper}>
+              {image?.uri || userData?.user?.profile ? (
+                <Image
+                  source={image?.uri ? { uri: image.uri } : { uri: userData.user.profile }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <View style={styles.placeholderAvatar}>
+                  <Icon name="person" size={40} color={Colors.SUBTEXT} />
+                </View>
+              )}
 
-            <View style={styles.addImage}>
-              <Icon name="add" size={25} color={Colors.WHITE} />
+              {/* Upload Badge */}
+              <View style={styles.addImage}>
+                <Icon name="camera" size={12} color={Colors.WHITE} />
+              </View>
+            </Pressable>
+          </View>
+
+          {/* RIGHT: User Information */}
+          <View style={styles.rightProfile}>
+            <Text style={styles.name} numberOfLines={1}>
+              {userData?.user?.name || "User Name"}
+            </Text>
+            <View style={styles.divider} />
+            <View style={styles.detailRow}>
+              <Icon name="mail" size={14} color={Colors.CYAN} />
+              <Text style={styles.detailText} numberOfLines={1}>
+                {userData?.user?.email}
+              </Text>
             </View>
-          </Pressable>
-          <Text style={styles.name}>{userData?.user?.name}</Text>
-          <Text style={styles.joined}>Joined on {formatDate(userData?.user?.createdAt)}</Text>
+            <View style={styles.divider} />
+            <View style={styles.detailRow}>
+              <Icon name="call" size={14} color={Colors.CYAN} />
+              <Text style={styles.detailText}>
+                {userData?.user?.phone || "No phone added"}
+              </Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.joinedBadge}>
+              <Text style={styles.joinedText}>
+                Member since {formatDate(userData?.user?.createdAt)}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        {/* Total Winnings */}
         {/* Total Winnings */}
         <View style={styles.winningWrapper}>
           <View style={styles.statsRow}>
@@ -305,7 +325,7 @@ export default function ProfileScreen({ }) {
                 adjustsFontSizeToFit
                 minimumFontScale={0.6}
               >
-                ₹ {userData?.bettingBag?.bankroll ?? '0'}
+                {userData?.bettingBag?.bankroll ?? '0'}
               </Text> </View>
           </View>
         </View>
@@ -379,34 +399,129 @@ export default function ProfileScreen({ }) {
             </Text>
           )}
 
-          {filteredResults.map(result => (
-            <View
-              key={result.id}
-              style={[
-                styles.resultCard,
-                result.resultInfo?.userResult === 'won' ? styles.win : styles.loss,
-                { shadowColor: result.resultInfo?.userResult === 'won' ? '#00796B' : '#C80202' }
-              ]}
-            >
-              <Text style={styles.resultTitle}>{result.title}</Text>
-              <Text style={styles.resultText}>
-                Category : {result.category}
-              </Text>
-              <Text style={styles.resultText}>
-                Your Prediction : {result.prediction}
-              </Text>
+          {filteredResults.map(result => {
+            const isWon = result.resultInfo?.userResult === 'won';
+            const hasRank = result.resultInfo?.rank !== null && result.resultInfo?.rank !== undefined;
 
-              <View
-                style={result.resultInfo?.userResult === 'won' ? styles.winBadge : styles.lossBadge}
+            return (
+              <TouchableOpacity
+                key={result.id}
+                activeOpacity={0.7}
+                onPress={() => handlePress(result.id)}
+                style={[
+                  styles.resultCard,
+                  isWon ? styles.win : styles.loss,
+                  { shadowColor: isWon ? '#00796B' : '#C80202' }
+                ]}
               >
-                <Text style={styles.badgeText}>
-                  {result.resultInfo?.userResult === 'won'
-                    ? `Win Points : +${result.resultInfo?.pointsEarned}`
-                    : `Lost Points : ${result.resultInfo?.pointsLost}`}
-                </Text>
-              </View>
-            </View>
-          )).slice(0, 3)}
+                {/* Header Row: Title + Result Badge */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={styles.resultTitle} numberOfLines={1}>{result.title}</Text>
+                  <View style={[
+                    styles.resultOutcomeBadge,
+                    { backgroundColor: isWon ? '#01C2A8' : '#C80202' }
+                  ]}>
+                    <Text style={styles.outcomeText}>{isWon ? '🏆 WON' : '❌ LOST'}</Text>
+                  </View>
+                </View>
+
+                {/* Divider */}
+                <View style={styles.cardDivider} />
+
+                {/* Category + Date Row */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    {result.categoryIcon ? (
+                      <Image source={{ uri: result.categoryIcon }} style={{ width: 16, height: 16, borderRadius: 4 }} />
+                    ) : null}
+                    <Text style={styles.resultText}>{result.category}</Text>
+                  </View>
+                  <Text style={[styles.resultText, { fontSize: 11 }]}>
+                    🗓 {new Date(result.declaredAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                  </Text>
+                </View>
+
+                {/* Prediction vs Correct Answer */}
+                <View style={styles.predictionRow}>
+                  <View style={styles.predictionBox}>
+                    <Text style={styles.predictionLabel}>Your Prediction</Text>
+                    <Text style={[styles.predictionValue, { color: isWon ? '#00796B' : '#C80202' }]}>
+                      {typeof result.prediction === 'object' ? JSON.stringify(result.prediction) : result.prediction}
+                    </Text>
+                  </View>
+                  <View style={styles.vsCircle}>
+                    <Text style={styles.vsText}>VS</Text>
+                  </View>
+                  <View style={styles.predictionBox}>
+                    <Text style={styles.predictionLabel}>Correct Answer</Text>
+                    <Text style={[styles.predictionValue, { color: '#00796B' }]}>
+                      {typeof result.correctAnswer === 'object'
+                        ? result.resultInfo?.rank
+                          ? result.correctAnswer[`rank${result.resultInfo.rank}`] ?? '—'   
+                          : Object.values(result.correctAnswer).join(', ')
+                        : result.correctAnswer}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Stats Row */}
+                <View style={styles.statsInfoRow}>
+                  {/* Bet Amount */}
+                  <View style={styles.statInfoBox}>
+                    <Text style={styles.statInfoLabel}>Bet</Text>
+                    <Text style={styles.statInfoValue}>🪙 {result.betAmount}</Text>
+                  </View>
+
+                  {/* Total Pot */}
+                  <View style={styles.statInfoBox}>
+                    <Text style={styles.statInfoLabel}>Total Pot</Text>
+                    <Text style={styles.statInfoValue}>💰 {result.totalPot}</Text>
+                  </View>
+
+                  {/* Points */}
+                  <View style={styles.statInfoBox}>
+                    <Text style={styles.statInfoLabel}>{isWon ? `Earned (${result.resultInfo.potPercentage>0 && result.resultInfo.potPercentage}%)` : 'Lost'}</Text>
+                    <Text style={[styles.statInfoValue, { color: isWon ? '#00796B' : '#C80202', fontFamily: 'Inter-Bold' }]}>
+                      {isWon ? `+${result.resultInfo?.pointsEarned}` : `-${result.resultInfo?.pointsLost}`}
+                    </Text>
+                  </View>
+                  {hasRank && result.resultInfo?.pointsEarned < result.betAmount && (
+                    <View style={styles.statInfoBox}>
+                      <Text style={styles.statInfoLabel}>Net</Text>
+
+                      <Text
+                        style={[
+                          styles.statInfoValue,
+                          {
+                            color:
+                              result.resultInfo?.pointsEarned - result.betAmount >= 0
+                                ? '#00796B'
+                                : '#C80202',
+                            fontFamily: 'Inter-Bold',
+                          },
+                        ]}
+                      >
+                        {result.resultInfo?.pointsEarned - result.betAmount >= 0
+                          ? `+${result.resultInfo?.pointsEarned - result.betAmount}`
+                          : `${result.resultInfo?.pointsEarned - result.betAmount}`}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Rank Row — only if rank exists */}
+                {hasRank && (
+                  <View style={styles.rankRow}>
+                    <View style={styles.rankBadge}>
+                      <Text style={styles.rankText}>🥇 Rank #{result.resultInfo?.rank}</Text>
+                    </View>
+                    <Text style={styles.potPercentageText}>{result.resultInfo?.potPercentageText}</Text>
+                  </View>
+                )}
+
+              </TouchableOpacity>
+            );
+          }).slice(0, 3)}
         </View>
 
         {/* Head to Head */}
@@ -485,27 +600,96 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16
   },
   profileContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    backgroundColor: Colors.WHITE,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    marginTop: 10,
+  },
+  leftProfile: {
+    marginRight: 18,
+  },
+  avatarWrapper: {
+    position: 'relative',
+    padding: 2,
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 50,
-    backgroundColor: Colors.WHITE,
-    elevation: 3
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.GREY,
+    borderWidth: 2,
+    borderColor: Colors.GREY,
+  },
+  placeholderAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.GREY,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addImage: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    backgroundColor: Colors.DARKGREY,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.WHITE,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  rightProfile: {
+    flex: 1,
+    justifyContent: 'center',
   },
   name: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 22,
+    fontFamily: 'Inter-Bold', 
     color: Colors.TEXT,
+    marginBottom: 6,
+    letterSpacing: -0.5,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  detailText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: Colors.SUBTEXT,
+    marginLeft: 8,
+  },
+  joinedBadge: {
+    backgroundColor: Colors.GREY,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
     marginTop: 8,
   },
-  joined: {
-    fontSize: 12,
+  joinedText: {
+    fontSize: 11,
     fontFamily: 'Inter-Medium',
     color: Colors.SUBTEXT,
-    marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  divider: {
+    height: 2,
+    backgroundColor: Colors.GREY,
+    marginVertical: 5,
   },
   winningWrapper: {
     marginHorizontal: 16,
@@ -611,6 +795,115 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 4,
+  },
+  resultOutcomeBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  outcomeText: {
+    fontSize: 10,
+    color: '#fff',
+    fontFamily: 'Inter-SemiBold',
+  },
+  cardDivider: {
+    height: 1,
+    backgroundColor: '#00000015',
+    marginVertical: 8,
+  },
+  predictionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    backgroundColor: '#00000008',
+    borderRadius: 10,
+    padding: 10,
+  },
+  predictionBox: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  predictionLabel: {
+    fontSize: 10,
+    color: Colors.SUBTEXT,
+    fontFamily: 'Inter-Medium',
+    marginBottom: 2,
+  },
+  predictionValue: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+  },
+  vsCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#00000015',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 8,
+  },
+  vsText: {
+    fontSize: 9,
+    fontFamily: 'Inter-Bold',
+    color: Colors.SUBTEXT,
+  },
+  statsInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  statInfoBox: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statInfoLabel: {
+    fontSize: 10,
+    color: Colors.SUBTEXT,
+    fontFamily: 'Inter-Medium',
+  },
+  statInfoValue: {
+    fontSize: 13,
+    color: Colors.DARKGREY,
+    fontFamily: 'Inter-SemiBold',
+    marginTop: 2,
+  },
+  rankRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    gap: 10,
+    flexWrap: 'wrap',
+  },
+  rankBadge: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  rankText: {
+    fontSize: 11,
+    fontFamily: 'Inter-Bold',
+    color: '#7A5C00',
+  },
+  netBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    backgroundColor: '#FFF3CD',
+    borderWidth: 1,
+    borderColor: '#FFC107',
+  },
+  netBadgeText: {
+    fontSize: 11,
+    fontFamily: 'Inter-Bold',
+    color: '#7A5C00',
+  },
+  potPercentageText: {
+    fontSize: 11,
+    color: Colors.SUBTEXT,
+    fontFamily: 'Inter-Medium',
+    flexShrink: 1,
   },
   loss: {
     borderWidth: 1,
@@ -733,20 +1026,5 @@ const styles = StyleSheet.create({
     padding: 5,
     paddingHorizontal: 15,
     alignSelf: 'flex-end',
-  },
-  imageContainer: {
-    alignItems: 'center',
-    marginTop: 40,
-    height: 150,
-    width: 150,
-    alignSelf: 'center',
-  },
-  addImage: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: Colors.TEXT,
-    borderRadius: 50,
-    zIndex: 100
   },
 });

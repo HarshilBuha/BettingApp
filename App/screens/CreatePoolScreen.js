@@ -47,8 +47,6 @@ export default function CreatePoolScreen({ navigation }) {
       setIsSubmitting(true);
 
       const merged = { ...poolData };
-
-      // build payload exactly as backend expects
       const payload = {
         poolName: merged.poolName,
         description: merged.description,
@@ -251,7 +249,6 @@ export default function CreatePoolScreen({ navigation }) {
             setCurrentStep(5);
           }}
           onSubmit={() => {
-            // Already submitted, just navigate
             handleSubmit(poolData);
           }}
         />

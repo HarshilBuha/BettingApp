@@ -5,7 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  ScrollView,  // 👈 USE ScrollView INSTEAD OF FlatList
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../../assets/fonts/fonts';

@@ -31,7 +31,7 @@ export default function StatisticScreen({ route }) {
 
       {/* CONTENT */}
       <View style={styles.content}>
-        <Header label='Statistics' showBackButton={true} showNotificationIcon={false} />
+        <Header type='out' label='Statistics' showBackButton={true} showNotificationIcon={false} />
 
         {/* CARD */}
         <ScrollView

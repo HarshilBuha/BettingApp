@@ -1,5 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQueryClient } from '@tanstack/react-query';
+import messaging from '@react-native-firebase/messaging';
 
 export const AuthContext = createContext();
 
@@ -7,6 +9,7 @@ export function AuthProvider({ children }) {
   const [userToken, setUserToken] = useState(null);
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const restoreAuth = async () => {
@@ -41,7 +44,9 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     setIsLoading(true);
     try {
-      await AsyncStorage.multiRemove(['userToken', 'userData']);
+      await messaging().deleteToken();
+      await AsyncStorage.clear()
+      queryClient.clear();
       setUserToken(null);
       setUserData(null);
     } finally {
@@ -53,7 +58,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         userToken,
-        userData,   // ✅ NOW PROVIDED
+        userData,   
         isLoading,
         signIn,
         signOut,

@@ -8,14 +8,13 @@ import {
   Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Images } from '../../assets/Images'; // ✅ adjust path if needed
+import { Images } from '../../assets/Images'; 
 import { Colors } from '../../assets/fonts/fonts';
 
 const CustomTabBar = ({ state, navigation }) => {
   const insets = useSafeAreaInsets();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
-  // ✅ Tab config — MUST match Tab.Screen names
   const tabs = [
     { name: 'Home', icon: Images.Home },
     { name: 'PoolStack', icon: Images.Pool },
@@ -36,7 +35,6 @@ const CustomTabBar = ({ state, navigation }) => {
     };
   }, []);
 
-  // 🔒 Hide tab bar when keyboard is open
   if (isKeyboardVisible) return null;
 
   return (

@@ -46,13 +46,13 @@ export default function PoolFilter({
         { id: 3, name: 'Entertainment' },
         { id: 4, name: 'Trivia' },
         { id: 5, name: 'Competition' },
-        { id: 6, name: 'Event' }
+        { id: 6, name: 'Event' },
+        { id: 7, name: 'Custom' },
     ];
 
     const handleDropdownToggle = (dropdownName) => {
         const newState = openDropdown === dropdownName ? null : dropdownName;
         setOpenDropdown(newState);
-        // 👇 ADD THESE 3 LINES:
         if (onDropdownOpen) {
             onDropdownOpen(newState !== null);
         }

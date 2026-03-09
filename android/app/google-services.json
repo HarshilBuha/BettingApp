@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "276301562223",
+    "project_id": "porralia-app-a3406",
+    "storage_bucket": "porralia-app-a3406.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276301562223:android:ea0466a65c5192cad6a89a",
+        "android_client_info": {
+          "package_name": "com.porraliaapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfHEccOB9gXuaguTzQa77dnbxTvC2ERLA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

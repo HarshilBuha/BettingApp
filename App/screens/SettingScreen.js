@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -18,21 +18,72 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthContext from '../contexts/AuthContext';
 import Loader from '../components/Loader';
 import { queryClient } from '../queryClient';
+import { useGetProfile, useUpdateNotification } from '../api/ProfileApis';
+import messaging from '@react-native-firebase/messaging';
+import { Platform, PermissionsAndroid, Linking } from 'react-native';
+import { sendFCMTokenToBackend } from '../api/fcm';
 
 export default function SettingScreen({ }) {
-  const [notificationEnabled, setNotificationEnabled] = useState(true);
+  const updateNotificationMutation = useUpdateNotification();
+  const { data: profile } = useGetProfile();
+  const [notificationEnabled, setNotificationEnabled] = useState();
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(null); // 'logout' | 'delete'
+  const [modalType, setModalType] = useState(null);
   const deleteAccountMutation = useDeleteAccount()
   const isLoading = deleteAccountMutation.isPending;
   const { signOut } = useContext(AuthContext);
+  const handleToggleNotification = async (value) => {
+    if (value) {
+      const authStatus = await messaging().hasPermission();
+      const alreadyEnabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      if (!alreadyEnabled) {
+        let granted = false;
+
+        try {
+          if (Platform.OS === 'android' && Platform.Version >= 33) {
+            const result = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+            );
+            granted = result === PermissionsAndroid.RESULTS.GRANTED;
+          } else {
+            const result = await messaging().requestPermission();
+            granted =
+              result === messaging.AuthorizationStatus.AUTHORIZED ||
+              result === messaging.AuthorizationStatus.PROVISIONAL;
+          }
+        } catch (e) {
+          console.log('Permission request error:', e);
+        }
+
+        if (!granted) {
+          Alert.alert(
+            'Notifications Disabled',
+            'Please enable notifications from your device settings to turn this on.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            ]
+          );
+          return;
+        }
+        await sendFCMTokenToBackend();
+      }
+    }
+
+    setNotificationEnabled(value);
+    const status = value ? "on" : "off";
+    updateNotificationMutation.mutate(status);
+  };
   const handleLogout = async () => {
     try {
       setShowModal(false);
 
-      await AsyncStorage.clear();   // clear storage
-      queryClient.clear();          // clear all react-query cache
-      await signOut();              // reset auth state
+      await AsyncStorage.clear();
+      queryClient.clear();       
+      await signOut();           
 
     } catch (error) {
       console.log('Logout error:', error);
@@ -59,7 +110,13 @@ export default function SettingScreen({ }) {
       }
     );
   };
-
+  useEffect(() => {
+    if (profile?.user?.notificationStatus === "on") {
+      setNotificationEnabled(true);
+    } else if (profile?.user?.notificationStatus === "off") {
+      setNotificationEnabled(false);
+    }
+  }, [profile]);
   const navigation = useNavigation()
   return (
     <SafeAreaView style={styles.container}>
@@ -77,7 +134,7 @@ export default function SettingScreen({ }) {
           <Text style={styles.cardText}>Notification</Text>
           <Switch
             value={notificationEnabled}
-            onValueChange={setNotificationEnabled}
+            onValueChange={handleToggleNotification}
             trackColor={{ false: '#E5E5E5', true: Colors.CYAN }}
             thumbColor={Colors.WHITE}
           />

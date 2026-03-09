@@ -17,11 +17,23 @@ export default function Header({
   showBackButton = false,
   hideRight = false,
   showNotificationIcon = true,
-  label = ""
+  label = "",
+  type = "na"
 }) {
   const navigation = useNavigation();
   const { data: userData = [], isLoading: isProfileLoading } = useGetProfile()
-  
+  const handleBack = () => {
+    if (type === 'out') {
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
+    } else {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      });
+    }
+  };
   return (
     <View style={styles.header}>
       {/* LEFT */}
@@ -29,10 +41,7 @@ export default function Header({
         {showBackButton ? (
           <TouchableOpacity
             style={styles.backRow}
-            onPress={() => navigation.reset({
-              index: 0,
-              routes: [{ name: 'Home' }],
-            })}
+            onPress={handleBack}
             activeOpacity={0.7}
           >
             <Image
@@ -76,12 +85,12 @@ export default function Header({
             }
           >
             {userData?.user?.profile ? (
-              <View style={{borderWidth:1,padding:2,borderRadius:100}}>
-              <Image
-                source={{ uri: userData.user.profile }}
-                style={[styles.avatar]}
-                resizeMode="cover"
-              />
+              <View style={{ borderWidth: 1, padding: 2, borderRadius: 100 }}>
+                <Image
+                  source={{ uri: userData.user.profile }}
+                  style={[styles.avatar]}
+                  resizeMode="cover"
+                />
               </View>
             ) : (
               <Icon

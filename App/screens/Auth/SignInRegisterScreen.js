@@ -128,7 +128,6 @@ export default function SignAuthScreen({ route }) {
       });
 
     } else {
-      // 📝 REGISTER
       registerMutation.mutate(
         {
           name: formData.name,
@@ -148,7 +147,7 @@ export default function SignAuthScreen({ route }) {
               return;
             }
 
-            await signIn(token, user); // ✅ PASS BOTH
+            await signIn(token, user); 
           },
           onError: (error) => {
             Alert.alert(
@@ -352,7 +351,7 @@ export default function SignAuthScreen({ route }) {
                   activeOpacity={0.8}
                 >
                   <LinearGradient
-                    colors={Colors.GRADIENT}  // adjust to match design
+                    colors={Colors.GRADIENT}  
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.button}
@@ -404,7 +403,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.DARKGREY,
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
-    paddingTop: 12,   // thickness of dark curve
+    paddingTop: 12,
   },
   scrollContent: {
     flexGrow: 1,

@@ -93,7 +93,6 @@ export default function StepThree({
     setErrors({});
   };
 
-  // 🔒 DIRECT VALIDITY CHECK - No useMemo, recalculates every render
   const isFormValid = (() => {
     const points = parseInt(pointsToAward);
     if (!points || points < 0) return false;
@@ -103,10 +102,8 @@ export default function StepThree({
 
     if (!rewardSystem) return false;
 
-    // ✅ Points Awards → no percentage validation
     if (rewardSystem?.id === 1) return true;
 
-    // ✅ Podium → percentages must total 100
     const total =
       (parseInt(winner) || 0) +
       (parseInt(runnerUp) || 0) +
@@ -116,7 +113,6 @@ export default function StepThree({
   })();
 
 
-  // ❗ Validation WITH setState (only called on press)
   const validateForm = () => {
     const newErrors = {};
 

@@ -10,10 +10,9 @@ const loginApi = async (payload) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-      timeout: 15000, // 15 second timeout
+      timeout: 15000, 
     });
     
-    // Handle network errors
     if (!response) {
       throw new Error("Network request failed - no response");
     }

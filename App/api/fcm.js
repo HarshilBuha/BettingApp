@@ -26,7 +26,6 @@ export async function sendFCMTokenToBackend() {
 
     const token = await AsyncStorage.getItem("userToken");
 
-    // Replace with your actual API endpoint
     const res = await fetch(FCM_Api, {
 
         method: "POST",
@@ -35,13 +34,12 @@ export async function sendFCMTokenToBackend() {
             'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-            fcmtoken,
+            fcmToken:fcmtoken,
         }),
     });
     console.log("send token", res);
 
     if (!res.ok) {
-        // optionally log/report error
         const errText = await res.text();
         throw new Error("Failed to register FCM token: " + errText);
     }
@@ -49,11 +47,6 @@ export async function sendFCMTokenToBackend() {
     return true;
 }
 
-
-/**
- * Force renewal and update FCM token in AsyncStorage.
- * Useful when the token changes.
- */
 export async function refreshFCMToken() {
     await messaging().registerDeviceForRemoteMessages();
     const newToken = await messaging().getToken();
@@ -63,10 +56,6 @@ export async function refreshFCMToken() {
     return newToken;
 }
 
-/**
- * Allows listening for FCM token refresh events.
- * Usage: const unsubscribe = onFCMTokenChange(cb)
- */
 export function onFCMTokenChange(callback) {
     return messaging().onTokenRefresh(async (token) => {
         await AsyncStorage.setItem('fcmToken', token);

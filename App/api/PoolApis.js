@@ -1,4 +1,3 @@
-// api hook file
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CreatePool_Api, GetAllUsers_Api, GetCategories_Api, GetPools_Api, Prediction_Api, GetPoolsNotificationInvite_Api } from './commonApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';

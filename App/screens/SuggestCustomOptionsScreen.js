@@ -89,7 +89,7 @@ export default function SuggestCustomOptionsScreen({ navigation, route }) {
                                     placeholder={`Option ${index + 1}`}
                                     placeholderTextColor={Colors.SUBTEXT}
                                     onChangeText={(text) => updateOption(text, index)}
-                                    editable={!isReadOnly}        // ✅ THIS is the key
+                                    editable={!isReadOnly}        
                                     selectTextOnFocus={!isReadOnly}
                                 />
 

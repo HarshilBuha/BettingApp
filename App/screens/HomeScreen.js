@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,20 +10,67 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-
+import { sendFCMTokenToBackend } from '../api/fcm';
 import { Colors } from '../../assets/fonts/fonts';
 import { Images } from '../../assets/Images';
 
 import Header from '../components/Header';
 import Loader from '../components/Loader';
 import PoolCard from '../components/PoolCard';
-
+import messaging from '@react-native-firebase/messaging';
 import { useGetPools, useGetInvitedPools } from '../api/PoolApis';
 import { useGetProfile } from '../api/ProfileApis';
-
+import { useUpdateNotification } from '../api/ProfileApis';
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const updateNotificationMutation = useUpdateNotification();
+  const checkNotificationPermission = async () => {
+    try {
+      const authStatus = await messaging().hasPermission();
 
+      const enabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        console.log("✅ Notification permission granted");
+
+        updateNotificationMutation.mutate("on");
+
+        return true;
+      } else {
+        console.log("❌ Notification permission NOT granted");
+
+        updateNotificationMutation.mutate("off");
+
+        return false;
+      }
+    } catch (error) {
+      console.log("Permission check error:", error);
+      updateNotificationMutation.mutate("off");
+      return false;
+    }
+  };
+  const navigation = useNavigation();
+  useEffect(() => {
+    const registerToken = async () => {
+      try {
+        const hasPermission = await checkNotificationPermission();
+
+        if (!hasPermission) {
+          console.log("🚫 Skipping FCM token send (permission not granted)");
+          return;
+        }
+
+        await sendFCMTokenToBackend();
+        console.log('✅ FCM token sent to backend');
+
+      } catch (error) {
+        console.log('❌ Failed to send FCM token:', error.message);
+      }
+    };
+
+    registerToken();
+  }, []);
   const { data: userData = {}, isLoading: isProfileLoading } = useGetProfile();
   const { data: pools = [], isLoading: isPoolsLoading } = useGetPools();
   const {
@@ -61,11 +108,20 @@ export default function HomeScreen() {
     return isParticipant && !isCreator;
   }).length;
 
+  const activePoolsCount = pools.filter(pool => {
+    const count = pool.poolStatus == "active";
+
+    return count
+  }).length;
+  console.log(activePoolsCount,);
+
+
+
   const poolStats = [
     {
       id: '1',
       label: 'Pool Points',
-      value: userData?.user?.totalPoints ?? 0,
+      value: userData.bettingBag?.totalWinnings ?? 0,
       icon: Images.Trophy,
       navigate: 'Summary',
     },
@@ -80,6 +136,7 @@ export default function HomeScreen() {
     {
       id: '3',
       label: 'Active Pools',
+      value: activePoolsCount,
       icon: Images.Bullseye,
       navigate: 'PoolMain',
       initialFilters: { status: { id: 2, name: 'Active' } },
@@ -87,9 +144,9 @@ export default function HomeScreen() {
     {
       id: '4',
       label: 'Your Pools',
+      value: pools.length,
       icon: Images.YourPool,
       navigate: 'PoolMain',
-      initialFilters: { role: { id: 2, name: 'Creator' } },
     },
   ];
   const renderStatCard = ({ item }) => {
@@ -136,7 +193,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         refreshing={refreshing}
-onRefresh={handleRefresh}
+        onRefresh={handleRefresh}
         renderItem={({ item }) => (
           <View style={{ marginHorizontal: 16, marginBottom: 12 }}>
             <PoolCard item={item} pool={item.pool} mode="invited" />

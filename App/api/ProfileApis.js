@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert, Platform } from "react-native";
-import { GetPoolResults_Api, GetPoolStatistics_Api, GetProfile_Api, UpdateProfile_Api } from './commonApi';
+import { GetPoolResults_Api,UpdateNotification_Api, GetPoolStatistics_Api, GetProfile_Api, UpdateProfile_Api } from './commonApi';
 import axios from "axios";
 
 const getPoolResultsApi = async () => {
@@ -68,45 +68,42 @@ const getProfileApi = async () => {
 };
 
 
-const updateProfile = async (image) => {
+const updateNotification = async (notificationStatus) => {
   const token = await AsyncStorage.getItem("userToken");
   if (!token) throw new Error("Token not found");
 
-  const formData = new FormData();
-
-  formData.append("profile", {
-    uri: image.uri,
-    type: image.type,
-    name: image.name || `profile_${Date.now()}.jpg`,
+  const response = await fetch(UpdateNotification_Api, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      notificationStatus: notificationStatus,
+    }),
   });
 
-  const response = await axios.put(
-    UpdateProfile_Api,
-    formData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        // ❌ DO NOT set Content-Type manually
-      },
-    }
-  );
+  const data = await response.json();
 
-  return response.data;
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to update notification");
+  }
+
+  return data;
 };
 
-
 /* -------------------- REACT QUERY HOOKS -------------------- */
-export const useUpdateProfile = () => {
+export const useUpdateNotification = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: updateProfile,
+    mutationFn: updateNotification,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
     onError: (error) => {
       Alert.alert(
-        "Profile update failed",
+        "Notification update failed",
         error?.response?.data?.message || error.message
       );
     },

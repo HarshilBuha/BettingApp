@@ -51,7 +51,7 @@ export default function NotificationScreen() {
 
             {/* CONTENT */}
             <View style={styles.content}>
-                <Header showBackButton={true} showNotificationIcon={false} />
+                <Header type='out' showBackButton={true} showNotificationIcon={false} />
 
                 {/* CARD */}
                 <View style={styles.cardWrapper}>
@@ -120,18 +120,14 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.WHITE,
         padding: 10
     },
-
-    /* BACKGROUND */
     background: {
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        bottom: 0,   // ✅ full height
+        bottom: 0, 
         zIndex: 0,
     },
-
-
     ellipseBig: {
         position: 'absolute',
         width: 420,
@@ -141,7 +137,6 @@ const styles = StyleSheet.create({
         top: -160,
         right: -240,
     },
-
     ellipseSmall: {
         position: 'absolute',
         width: 550,
@@ -162,30 +157,21 @@ const styles = StyleSheet.create({
         marginTop: 12,
         borderRadius: 16,
         height: "85%",
-        backgroundColor: '#FFFFFF', // ✅ solid for clean shadow
+        backgroundColor: '#FFFFFF', 
 
         shadowColor: '#000',
-        shadowOpacity: 0.12,        // 🔽 softer
+        shadowOpacity: 0.12,        
         shadowRadius: 12,
         shadowOffset: { width: 0, height: 6 },
-
-        elevation: 8,               // 🔽 lower elevation
+        elevation: 8,              
     },
-
-
     cardInner: {
         borderRadius: 16,
         padding: 16,
-
         backgroundColor: 'rgba(255,255,255,0.65)',
-
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.7)',
     },
-
-
-
-    /* ITEMS */
     item: {
         marginBottom: 8,
     },
@@ -209,8 +195,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#E5E5E5',
         marginVertical: 14,
     },
-
-    /* ACTIONS */
     actionRow: {
         flexDirection: 'row',
         marginTop: 12,

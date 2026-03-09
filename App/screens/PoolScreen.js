@@ -41,7 +41,6 @@ export default function PoolScreen({ navigation }) {
 
   useFocusEffect(
     React.useCallback(() => {
-      // Reset filters based on navigation params
       setSearchText('');
       setCategory({ id: 1, name: 'All Categories' });
       setUsers({ id: 1, name: 'All Users' });
@@ -52,7 +51,6 @@ export default function PoolScreen({ navigation }) {
   );
 
   const filteredPools = pools.filter(pool => {
-    // 🔍 Search
     if (
       searchText &&
       !(
@@ -63,7 +61,6 @@ export default function PoolScreen({ navigation }) {
       return false;
     }
 
-    // 📌 Status
     if (status && status.name !== 'All Pools') {
       const poolStatus = pool.poolStatus || '';
       if (poolStatus.toLowerCase() !== status.name.toLowerCase()) {
@@ -71,7 +68,6 @@ export default function PoolScreen({ navigation }) {
       }
     }
 
-    // 👤 Role (Creator / Player / etc.)
     if (role && role.name !== 'All Roles') {
       if (role.name === 'Creator') {
         if (pool.createdBy?.id !== currentUserId && pool.createdBy?._id !== currentUserId) {
@@ -138,13 +134,59 @@ export default function PoolScreen({ navigation }) {
   };
 
   const handleViewPool = (pool) => {
-    navigation.navigate('PoolDetail', { pool });
-  };
+    navigation.navigate('PoolDetail', { pool }); 
+};
 
   const handleCloseFilter = () => {
     setShowFilter(false);
     setIsDropdownOpen(false);
   };
+
+  const getEmptyMessage = () => {
+    // 1. Search Logic
+    if (searchText) {
+      return {
+        title: "No matches found",
+        subtitle: `We couldn't find any pools matching "${searchText}".`,
+        icon: "search-outline"
+      };
+    }
+
+    // 2. Status Logic (Active/Completed)
+    if (status && status.name !== 'All Pools') {
+      return {
+        title: `No ${status.name} Pools`,
+        subtitle: `There are currently no pools with the status "${status.name}".`,
+        icon: "file-tray-outline"
+      };
+    }
+
+    // 3. Role Logic (Creator/Player)
+    if (role && role.name !== 'All Roles') {
+      return {
+        title: "No Pools Found",
+        subtitle: `You haven't created any pools as a ${role.name} yet.`,
+        icon: "person-outline"
+      };
+    }
+    if (category && category.name !== 'All Categories') {
+    return {
+      title: "No Pools in Category",
+      subtitle: `There are currently no pools under the "${category.name}" category.`,
+      icon: "grid-outline"
+    };
+  }
+
+
+    // 4. Default state (Actually empty database)
+    return {
+      title: "No Pools to Show",
+      subtitle: "There are currently no pools available in the pool.",
+      icon: "cloud-offline-outline"
+    };
+  };
+
+  const emptyContent = getEmptyMessage();
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle={"dark-content"} backgroundColor={Colors.WHITE} />
@@ -180,12 +222,13 @@ export default function PoolScreen({ navigation }) {
         renderItem={({ item }) => (
           <PoolCard pool={item} onViewPool={handleViewPool} />
         )}
-        ListEmptyComponent={<View style={styles.container}>
-          <Text style={styles.title}>No Pools to Show</Text>
-          <Text style={styles.subtitle}>
-            There are currently no pools available.
-          </Text>
-        </View>}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Icon name={emptyContent.icon} size={60} color={Colors.GRAY} style={{ marginBottom: 16 }} />
+            <Text style={styles.title}>{emptyContent.title}</Text>
+            <Text style={styles.subtitle}>{emptyContent.subtitle}</Text>
+          </View>
+        }
         ListHeaderComponent={
           <>
             {showFilter && (
@@ -265,5 +308,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 6,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 50, 
+    paddingHorizontal: 20,
+  },
+  title: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: Colors.TEXT,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: Colors.DARKGREY,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  resetButton: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: Colors.SUBTEXT, 
+    borderRadius: 8,
+  },
+  resetText: {
+    color: Colors.CYAN,
+    fontFamily: 'Inter-Medium',
   },
 });

@@ -1,6 +1,10 @@
 package com.porraliaapp
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.media.AudioAttributes
+import android.os.Build
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -23,5 +27,32 @@ class MainApplication : Application(), ReactApplication {
   override fun onCreate() {
     super.onCreate()
     loadReactNative(this)
+
+    // 👇 ADD THIS
+    createNotificationChannel()
+  }
+
+  private fun createNotificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val channel = NotificationChannel(
+        "default_channel",
+        "Default Channel",
+        NotificationManager.IMPORTANCE_HIGH
+      ).apply {
+        description = "Default notification channel"
+        enableVibration(true)
+        setShowBadge(true)
+
+        val audioAttributes = AudioAttributes.Builder()
+          .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+          .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+          .build()
+
+        setSound(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI, audioAttributes)
+      }
+
+      val manager = getSystemService(NotificationManager::class.java)
+      manager.createNotificationChannel(channel)
+    }
   }
 }

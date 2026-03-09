@@ -97,9 +97,9 @@ export default function PoolCard({ pool, item, onViewPool, mode = 'normal' }) {
               <Image source={Images.Prize} style={styles.smallIcon} />
 
               <View>
-                <Text style={styles.infoText}>{pool.betAmount} pts to bet</Text>
-                <Text style={styles.infoText}>{pool.totalPot} pts total pot</Text>
-                <Text style={styles.infoText}>{pool.maxWin} pts max win</Text>
+                <Text style={styles.infoText}>{pool.betAmount} pts to enter the pool</Text>
+                <Text style={styles.infoText}>{pool.totalPot} pts current total pot size</Text>
+                <Text style={styles.infoText}>{pool.totalPot} pts max win</Text>
               </View>
             </View>
           </View>
@@ -131,9 +131,11 @@ export default function PoolCard({ pool, item, onViewPool, mode = 'normal' }) {
         </View>
 
         {/* ===== Points Scored ===== */}
-        <Text style={styles.pointsCenter}>
-          Points Scored: {pool.result?.userPointsEarned || 0} pts
-        </Text>
+        {mode != 'invited' &&
+          <Text style={styles.pointsCenter}>
+            {pool.pointsScored >= 0 ? `Points Scored: ${pool.pointsScored} pts` : `Points Lost: ${pool.pointsScored} pts`}
+          </Text>
+        }
         {/* Copy Link Button */}
         {mode === 'invited' ? (
           <View style={styles.inviteActionRow}>
@@ -185,7 +187,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  // ✅ HEADER: Category Badge + Open Button
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -230,22 +231,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: Colors.TEXT,
   },
-
-  // ✅ TITLE
   poolTitle: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: Colors.TEXT,
   },
-
-  // ✅ DESCRIPTION
   poolDescription: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: Colors.SUBTEXT,
   },
-
-  // ✅ PLAYERS COUNT
   playersSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -257,8 +252,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: Colors.SUBTEXT,
   },
-
-  // ✅ PLAYER NAMES
   playerNamesSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -270,8 +263,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: Colors.SUBTEXT,
   },
-
-  // ✅ BETTING DETAILS BOX
   bettingBox: {
     borderRadius: 8,
     marginBottom: 12,
@@ -287,8 +278,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: Colors.DARKGREY,
   },
-
-  // ✅ POINTS SCORED
   pointsScoredSection: {
     marginBottom: 6,
   },
@@ -298,8 +287,6 @@ const styles = StyleSheet.create({
     fontWeight: 800,
     color: Colors.DARKGREY,
   },
-
-  // ✅ SCORED BY
   scoredBySection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -343,6 +330,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Inter-SemiBold',
     color: Colors.TEXT,
+    maxWidth: "90%",
   },
 
   highlightText: {
@@ -358,8 +346,6 @@ const styles = StyleSheet.create({
     color: Colors.TEXT,
     marginVertical: 12,
   },
-
-  // ✅ CREATED BY
   createdBySection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -371,8 +357,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: Colors.CYAN,
   },
-
-  // ✅ COPY LINK BUTTON
   copyLinkButton: {
     flexDirection: 'row',
     alignItems: 'center',
