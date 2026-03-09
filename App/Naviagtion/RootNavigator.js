@@ -6,7 +6,6 @@ import ResultScreen from "../screens/ResultScreen"
 import StatisticScreen from "../screens/StatisticScreen"
 import SummaryScreen from "../screens/SummaryScreen"
 import PoolDetailScreen from '../screens/PoolDetailScreen';
-import ExtraScreen from '../screens/ExtraScreen';
 import SuggestCustomOptionsScreen from '../screens/SuggestCustomOptionsScreen';
 const Stack = createNativeStackNavigator();
 
@@ -19,7 +18,6 @@ export default function RootNavigator() {
       <Stack.Screen name="Statistics" component={StatisticScreen} />
       <Stack.Screen name="Summary" component={SummaryScreen} />
       <Stack.Screen name="PoolDetail" component={PoolDetailScreen} />
-      <Stack.Screen name="Extra" component={ExtraScreen} />
       <Stack.Screen name="SuggestCustomOptions" component={SuggestCustomOptionsScreen} />
     </Stack.Navigator>
   );
